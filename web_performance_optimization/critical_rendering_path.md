@@ -151,3 +151,31 @@ To figure out the exact size and position of each object, the browser begins at 
 In this example, the body contains two nested div: first, the parent div which has the display width is 50% of the viewport width, and the second - child div - has the display width is 25% of the viewport width or 50% of its parent div width.
 
 ![](layout-viewport.png)
+
+The output of the layout process is a "box model" which precisely captures the exact position and size of each element within the viewport; all of the relative measure (e.g 50%) are converted to absolute pixels positions on the screen.
+
+Finally, now the browser know every thing about nodes attributes: visibility, computed styles and geometry. The browser then can process the final stage which will convert each node in the render tree with these information to actual pixels on the screen - this step is often referred to as "painting" or "rasterizing".
+
+
+The time required to perform render tree construction, layout and paint will vary based on the size of the document, the applied styles, and of course, the device it is running on: the larger the document the more work the browser will have to do; the more complicated the styles are the more time will be consumed for painting also.
+
+Once all is done, the page is finally visible inthe viewport.
+
+**Recap**:
+
+1. Process HTML markup and build the DOM tree,
+
+2. Process CSS markup and build the CSSOM tree,
+
+3. Combine the DOM and CSSOM into a render tree,
+
+4. Run layout on the render tree to compute geometry of each node,
+
+5. Paint the individual nodes to the screen.
+
+If the DOM and CSSOM is modified (e.g by javascript), the browser would have to repeat the same process over again to figure out which pixels need to be re-rendered on the screen.
+
+**Optimizing the critical rendering path is the process of minimizing the total amount of time spent in steps 1 through 5 in the above sequence**. Doing so enables us to render content to the screen as soon as possible and also to reduces the amount of time between screen updates after the initial render - i.e. achieve higher refresh rate for interactive content.
+
+
+
