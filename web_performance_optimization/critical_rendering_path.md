@@ -177,5 +177,49 @@ If the DOM and CSSOM is modified (e.g by javascript), the browser would have to 
 
 **Optimizing the critical rendering path is the process of minimizing the total amount of time spent in steps 1 through 5 in the above sequence**. Doing so enables us to render content to the screen as soon as possible and also to reduces the amount of time between screen updates after the initial render - i.e. achieve higher refresh rate for interactive content.
 
+###Rendering block CSS
+
+Render blocking resource is when the browser hold any other rendering process for the rendering process of the current resource. CSS is treated as one of a render blocking resource which mean the others rendering process might continue if the CSSDOM is constructed. So to improve performance, make sure to keep the CSS lean, deliver it as quickly as possible along with using `media types` and `media queries` to unblock rendering.
+
+**TL;DR**
+
+- CSS is treated as a render blocking resource by default.
+
+- `Media types`, and `media queries` allow to _mark_ some _CSS resource_ as _non render blocking_
+
+- All CSS resource (block or non block) are downloaded by the browser.
+
+Because CSS and HTML are render blocking resources, the browser will block rendering until it retrive both the DOM and CSSOM. That explain when the network is slow and a webpage is load there is a blank page with reloading icon in the title.
+
+Nowadays, there are a lot of devices with different screen size, or maybe the webpage os used to print, and the style for each of those are different. We need a mechanism for loading each of the CSS for each of the devices, instead of loading it altogether at once.
+
+CSS `media types` and `media queries` can be used to separate the rendering CSS for each specific devices.
+
+```css
+<link href="style.css" rel="stylesheet">
+<link href="print.css" rel="stylesheet" media="print">
+<link href="other.css" rel="stylesheet" media="(min-width: 40em)">
+```
+
+A media query consists of a media type (like "print") and 0 or more expression for represent conditions of s particular devices.
+
+Example: the first stylesheet declaration does not provide any media type or query -> it applied in all case. Which mean it always render blocking. The second one will only apply when the content is being printed, hence this stylesheet does not block the rendering of the page when it is first loaded. The third stylesheet provides a `media query` which is executed by the browser: if the projection device has match the condition (has width > 40em), the browser of the device will block rendering until the stylesheet is downloaded and processed, else is does not block rendered.
+
+Media query can be used on many characteristics of the device like: display vs. print, screen orientation changes, resize event...
+
+When declaring stylesheet assets, pay close attention to the media type and queries, as they will have big performance impact on the critical rendering path!
+
+Other example:
+
+```css
+<link href="style.css"    rel="stylesheet" media="screen">
+<link href="portrait.css" rel="stylesheet" media="orientation:portrait">
+```
+
+- The first declaration is render blocking and its the same with the declaration without media query because "screen" is the default type if the media is not specify.
+
+- The second declaration has a dynamic media query which will be evaluated when the page is being loaded. Depending on the orientation of the device when the page is loaded, so it may (when the device in portrait mode) or may not (when the devce in other mode) be render blocking.
+
+Because render blocking only refers to whether the browser will have to hold the initial rendering of the page on theresource, it is not about whether the resource is being downloaded or not. In both case, the CSS assets is still downloaded by the browser, but only those which match media query condition will be render blocking.
 
 
