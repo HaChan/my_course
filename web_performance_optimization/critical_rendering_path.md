@@ -93,6 +93,8 @@ To see how long the CSS processing took, using tool like Chrome DevTool to recor
 
 The CSSOM and the DOM are independent data structure. The browser need the render tree to links the CSSOM and DOM together to render a simple web page.
 
+[source](https://developers.google.com/web/fundamentals/performance/critical-rendering-path/constructing-the-object-model.html)
+
 ###Render-tree construction, Layout, and Paint
 
 The CSSOM and DOM trees are combined into a render tree, which is then used to compute the layout of each visible element and serves as an input to the paint process which is the browser renders pixels to screen.
@@ -178,6 +180,8 @@ If the DOM and CSSOM is modified (e.g by javascript), the browser would have to 
 
 **Optimizing the critical rendering path is the process of minimizing the total amount of time spent in steps 1 through 5 in the above sequence**. Doing so enables us to render content to the screen as soon as possible and also to reduces the amount of time between screen updates after the initial render - i.e. achieve higher refresh rate for interactive content.
 
+[source](https://developers.google.com/web/fundamentals/performance/critical-rendering-path/render-tree-construction.html)
+
 ###Rendering block CSS
 
 Render blocking resource is when the browser hold any other rendering process for the rendering process of the current resource. CSS is treated as one of a render blocking resource which mean the others rendering process might continue if the CSSDOM is constructed. So to improve performance, make sure to keep the CSS lean, deliver it as quickly as possible along with using `media types` and `media queries` to unblock rendering.
@@ -222,6 +226,8 @@ Other example:
 - The second declaration has a dynamic media query which will be evaluated when the page is being loaded. Depending on the orientation of the device when the page is loaded, so it may (when the device in portrait mode) or may not (when the devce in other mode) be render blocking.
 
 Because render blocking only refers to whether the browser will have to hold the initial rendering of the page on theresource, it is not about whether the resource is being downloaded or not. In both case, the CSS assets is still downloaded by the browser, but only those which match media query condition will be render blocking.
+
+[source](https://developers.google.com/web/fundamentals/performance/critical-rendering-path/render-blocking-css.html)
 
 ###Adding interactivity with Javascript
 
@@ -272,6 +278,8 @@ To do this, add `async` mark to the script:
 ```
 
 Adding the async keyword to the script tag tells the browser that it should not block the DOM construction while it waits for the script to become available.
+
+[source](https://developers.google.com/web/fundamentals/performance/critical-rendering-path/adding-interactivity-with-javascript.html)
 
 ###Measuring the Critical Rendering Path (Page Load Speed) with Navigation Timing
 
@@ -369,6 +377,8 @@ dom_loading_time = timing.domInteractive - timing.domLoading;
 render_tree_loading_time = timing.domContentLoadedEventStart - timing.domLoading;
 full_page_loading_time = timing.domComplete - timing.domLoading;
 ```
+
+[source](https://developers.google.com/web/fundamentals/performance/critical-rendering-path/measure-crp.html)
 
 ###Analyzing Critical Rendering Path Performance.
 
@@ -535,15 +545,17 @@ By including both the CSS and JS into the page, it now is much larger, but the b
 
 So, in order to optimizing the critical rendering path, we need understand the dependency between resources, identity which resource are "critical", and choose different strategies to include those resource on the page.
 
+[source](https://developers.google.com/web/fundamentals/performance/critical-rendering-path/analyzing-crp.html)
+
 ###Optimizing the Critical Rendering Path.
 
 In order to make the fisrt render as fasr as possible, these variables need to be considered and optimized:
 
-- Minimize the number of critical resources: resource that block initial rendering of the page.
+- Minimize the number of critical resources: resource that block initial rendering of the page (like CSS, parser blocking JS).
 
 - Minimize the critical path length: the total time required to fetch all of the critical resources.
 
-- Minimize the number of critical bytes: the total amount of bytes of the critical resources, which need to get to first render of the page.
+- Minimize the number of critical bytes: the total amount of bytes of the critical resources, which need to get to first render of the page (reduce by remove comments on HTML, CSS and JS files, use media queries on CSS and use async JS or defer JS).
 
 The fewer of the critical resources is, the less work the browser has to do to paint the page on the screen. The fewer critical bytes the browser need to download, the faster it can get to processing the content and paint it on the screen. To reduce number of bytes, reduce number of resources (make them non-critical or eliminate them). Finnally, the critical path length is a dependency between all the Critical resources of a page and their bytesize: some resource is only downloaded if a previous resource has been processed, and if the resource is large, the number of roundtrip to get it downloaded is also big.
 
@@ -557,6 +569,61 @@ So, the general sequence of steps to optimize the critical rendering path is:
 
 4. Optimize the number of critical bytes to reduce the download time. (number of roundtrips)
 
+[source](https://developers.google.com/web/fundamentals/performance/critical-rendering-path/optimizing-critical-rendering-path.html)
+
 ###PageSpeed Rules
 
+Things that need to pay attention to when optimizing the Critical Rendering Path:
 
+####Eliminate render-blocking JavaScript and CSS
+
+To deliver the fastest time to first render, the number of critical resources on the page need to be minimized and eliminated (if possible). And the critical resources of a page is HTML, CSS and parsing JS. With HTML files, the number of bytes is the thing that can be minimized by removing all comments and unnecessary white space. With CSS and JS, there is some different patern for each:
+
+#####1. Optimizing Javascript
+
+Javascript resources are parser blocking by default unless it is marked as `async` or added via other JS codes. Parser blocking JS forces browser to wait on DOM construction for CSSOM construction, which mean to wait for the download of CSS resources and the download of JS resource, and until the CSSOM are constructed, the JS is now parsed and gets run. This process will make a significantly delay time to first render.
+
+**Make JavaScript resources async**
+
+Async Javascript resources unblock the document parser and allow the browser to avoid blocking on building CSSOM tree prior to executing the script. Putting async in a script tag will make the browser not to execute the script when it is referenced by the browser int the HTML document. This would allow the browser to continue to build the DOM and execute the script when the DOM is ready. So, if the JS does not work directly with HTML or CSS elements, put async to those JS resources.
+
+**Defer parsing JavaScript**
+
+Any non-essential scripts that are not critical to constructing the visible content for the initial render should be deferred to minimize the amount of work the browser has to perform to render the page. But what and how to defer JS. Defer JavaScript tries to defer JavaScript execution until page load, using some small loaded JS in page to download the needed Javascript resources. Example:
+
+```javascript
+function downloadJSAtOnload() {
+  var element = document.createElement("script");
+  element.src = "defer_resource_js.js";
+  document.body.appendChild(element);
+}
+
+if(window.addEventListener)
+  window.addEventListener("load", downloadJSAtOnload, false);
+else if(window.attachEvent)
+  window.attachEvent("onload", downloadJSAtOnload);
+else
+  window.onload = downloadJSAtOnload;
+```
+
+This code says wait for the entire document to load, then load the external javascript file. It should be put in a script tags right before </body> tag. The resource JS need to be at the same folder with the HTML document.
+
+**Avoid long running JavaScript**
+
+Because Javascript blocks the browser from constructing the DOM, and rendering the page. The longer the script running the longer the browser have to block the DOM construction and page rendering. So, any script that is nonessential for the first render should be deferred until later. If a long initialization sequence needs to be run, consider spliting it into several stages to allow the browser process other event between.
+
+#####2. Optimize CSS
+
+**Put CSS in the document head**
+
+All CSS resources should be specified as early as possible within the HTML document suxh that the browser will dispatch the request for the css as soon as possible.
+
+**Avoid CSS imports**
+
+CSS import (@import) directive one stylesheet to import rules from another stylesheet file. But it cause additional roundtrips into the critical path: the imported CSS resources are discovered only after the CSS that importing it has been _received_ and parsed. (Only when parsing that the browser will know about the @import directives so that it can dispatch request for it)
+
+**Inline CSS**
+
+Putting critical CSS directly into the HTML document can make the performance boost a lot. This eliminates additional roundtrips in the critical path and it can deliver a one roundtrip critical path length where the HTML is the only resource that is critical. (If the HTML files is small enough).
+
+[source](https://developers.google.com/web/fundamentals/performance/critical-rendering-path/page-speed-rules-and-recommendations.html)
