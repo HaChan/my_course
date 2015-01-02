@@ -1,0 +1,1 @@
+This is the notes that I took when reading about optimizing performance by optimizing Critical Rendering Path at [here](https://developers.google.com/web/fundamentals/performance/critical-rendering-path/).
