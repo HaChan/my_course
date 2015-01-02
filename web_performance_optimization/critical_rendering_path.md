@@ -1,5 +1,25 @@
 #Web Optimizing Performance
 
+Table of navigation
+
+  - [Critical Rendering Path](#critical-rendering-path)
+
+  - [Constructing the Object Model](#constructing-the-object-model)
+
+  - [Render-tree construction, Layout, and Paint](#render-tree-construction-layout-and-paint)
+
+  - [Rendering block CSS](#rendering-block-css)
+
+  - [Adding interactivity with Javascript](#adding-interactivity-with-javascript)
+
+  - [Measuring the Critical Rendering Path (Page Load Speed) with Navigation Timing](##measuring-the-critical-rendering-path-page-load-speed-with-navigation-timing)
+
+  - [Analyzing Critical Rendering Path Performance](#analyzing-critical-rendering-path-performance)
+
+  - [Optimizing the Critical Rendering Path](#optimizing-the-critical-rendering-path)
+
+  - [PageSpeed Rules](#pagespeed-rules)
+
 ##Critical Rendering Path
 
 Optimizing the critical rendering path is critical for improving performance of the pages: The developer goal is to prioritize and display the content that relates to the primary action of the user wants to take on a page.
@@ -257,7 +277,7 @@ Javascript introduces a lot of new dependencies between the DOM, and CSSOM and t
 
 ####Parser blocking vs Asynchronous
 
-Javascript execution is "parser blocking" by default, which mean when the browser encounters a script tag in the document it must pause the DOM construction, hand over the control to the JS runtime to execute javascript before continue with the DOM construction. 
+Javascript execution is "parser blocking" by default, which mean when the browser encounters a script tag in the document it must pause the DOM construction, hand over the control to the JS runtime to execute javascript before continue with the DOM construction.
 
 Inline script are always parser blocking unless there are some additional code to defer their execution.
 
